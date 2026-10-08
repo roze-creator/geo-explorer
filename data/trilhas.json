@@ -1,0 +1,209 @@
+{
+  "trilhas": [
+    {
+      "id": "javascript",
+      "tecnologia": "JavaScript",
+      "descricao": "Trilha completa de JavaScript do básico ao avançado, cobrindo ES6+, assincronismo e APIs.",
+      "niveis": {
+        "iniciante": {
+          "duracao": "4 semanas",
+          "modulos": [
+            "Introdução ao JavaScript e ambiente de desenvolvimento",
+            "Variáveis, tipos de dados e operadores",
+            "Estruturas de controle: if, switch, loops",
+            "Funções e escopo",
+            "Arrays e objetos"
+          ]
+        },
+        "intermediario": {
+          "duracao": "6 semanas",
+          "modulos": [
+            "ES6+: arrow functions, destructuring, spread/rest",
+            "Promises e async/await",
+            "Manipulação do DOM",
+            "Fetch API e requisições HTTP",
+            "Módulos ES6 e bundlers",
+            "Testes com Jest"
+          ]
+        },
+        "avancado": {
+          "duracao": "8 semanas",
+          "modulos": [
+            "Padrões de projeto em JavaScript",
+            "Performance e otimização",
+            "Web Workers e Service Workers",
+            "WebSockets e comunicação em tempo real",
+            "TypeScript avançado",
+            "Frameworks modernos (React/Vue/Angular)",
+            "CI/CD e deploy de aplicações web",
+            "Segurança em aplicações JavaScript"
+          ]
+        }
+      }
+    },
+    {
+      "id": "python",
+      "tecnologia": "Python",
+      "descricao": "Trilha de Python para desenvolvimento back-end, dados e automação.",
+      "niveis": {
+        "iniciante": {
+          "duracao": "4 semanas",
+          "modulos": [
+            "Introdução ao Python e ambiente virtual",
+            "Variáveis, tipos e operadores",
+            "Estruturas de controle e funções",
+            "Listas, dicionários e tuplas",
+            "Leitura e escrita de arquivos"
+          ]
+        },
+        "intermediario": {
+          "duracao": "6 semanas",
+          "modulos": [
+            "Programação orientada a objetos",
+            "Tratamento de erros e exceções",
+            "Módulos e pacotes",
+            "Manipulação de dados com Pandas",
+            "Requisições HTTP com Requests",
+            "Testes com pytest"
+          ]
+        },
+        "avancado": {
+          "duracao": "8 semanas",
+          "modulos": [
+            "Desenvolvimento de APIs com FastAPI",
+            "Banco de dados com SQLAlchemy",
+            "Machine Learning com scikit-learn",
+            "Web scraping com Scrapy",
+            "Concorrência e paralelismo",
+            "Docker e containers",
+            "Deploy em cloud (AWS/GCP/Azure)",
+            "Segurança em aplicações Python"
+          ]
+        }
+      }
+    },
+    {
+      "id": "typescript",
+      "tecnologia": "TypeScript",
+      "descricao": "Trilha de TypeScript para desenvolvimento tipado e escalável.",
+      "niveis": {
+        "iniciante": {
+          "duracao": "3 semanas",
+          "modulos": [
+            "Introdução ao TypeScript e configuração",
+            "Tipos básicos e inferência",
+            "Interfaces e type aliases",
+            "Funções tipadas",
+            "Classes e modificadores de acesso"
+          ]
+        },
+        "intermediario": {
+          "duracao": "5 semanas",
+          "modulos": [
+            "Generics",
+            "Union e Intersection Types",
+            "Decorators",
+            "Módulos e namespaces",
+            "Configuração avançada do tsconfig",
+            "TypeScript com React"
+          ]
+        },
+        "avancado": {
+          "duracao": "7 semanas",
+          "modulos": [
+            "Tipos condicionais e mapeados",
+            "Template literal types",
+            "Utility types avançados",
+            "Monorepos com TypeScript",
+            "Performance e otimização de tipos",
+            "Integração com APIs externas tipadas",
+            "Publicação de bibliotecas TypeScript"
+          ]
+        }
+      }
+    },
+    {
+      "id": "node",
+      "tecnologia": "Node.js",
+      "descricao": "Trilha de Node.js para back-end, APIs REST e microsserviços.",
+      "niveis": {
+        "iniciante": {
+          "duracao": "4 semanas",
+          "modulos": [
+            "Introdução ao Node.js e npm",
+            "Módulos nativos: fs, path, http",
+            "Criando um servidor HTTP simples",
+            "Express.js básico",
+            "CRUD com arquivos JSON"
+          ]
+        },
+        "intermediario": {
+          "duracao": "6 semanas",
+          "modulos": [
+            "Middlewares no Express",
+            "Banco de dados com MongoDB",
+            "Autenticação com JWT",
+            "Validação de dados",
+            "Variáveis de ambiente e segurança",
+            "Testes de API com Supertest"
+          ]
+        },
+        "avancado": {
+          "duracao": "8 semanas",
+          "modulos": [
+            "Microsserviços com Node.js",
+            "Message brokers (RabbitMQ/Kafka)",
+            "GraphQL",
+            "WebSockets com Socket.io",
+            "Monitoramento e logging",
+            "Docker e Kubernetes",
+            "CI/CD pipelines",
+            "Performance e escalabilidade"
+          ]
+        }
+      }
+    },
+    {
+      "id": "cpp",
+      "tecnologia": "C++",
+      "descricao": "Trilha de C++ para sistemas, performance e programação de baixo nível.",
+      "niveis": {
+        "iniciante": {
+          "duracao": "5 semanas",
+          "modulos": [
+            "Introdução ao C++ e ambiente de compilação",
+            "Variáveis, tipos primitivos e operadores",
+            "Estruturas de controle: if, switch, loops",
+            "Funções e passagem por valor e referência",
+            "Arrays, strings e ponteiros básicos"
+          ]
+        },
+        "intermediario": {
+          "duracao": "7 semanas",
+          "modulos": [
+            "Programação orientada a objetos: classes e objetos",
+            "Construtores, destrutores e RAII",
+            "Herança, polimorfismo e classes abstratas",
+            "Templates e programação genérica",
+            "STL: vector, map, set e algoritmos",
+            "Gerenciamento de memória e smart pointers"
+          ]
+        },
+        "avancado": {
+          "duracao": "9 semanas",
+          "modulos": [
+            "Move semantics e rvalue references",
+            "Metaprogramação com templates",
+            "Concorrência com std::thread e std::mutex",
+            "Otimização de performance e profiling",
+            "Padrões de projeto em C++",
+            "Interoperabilidade com C e linguagens externas",
+            "Desenvolvimento de bibliotecas reutilizáveis",
+            "Sistemas embarcados e programação de baixo nível",
+            "C++20: concepts, ranges e coroutines"
+          ]
+        }
+      }
+    }
+  ]
+}

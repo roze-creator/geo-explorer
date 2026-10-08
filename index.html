@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geo-Explorer</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #22263a;
+      --border: #2e3350;
+      --text: #e8eaf6;
+      --muted: #8b90b0;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --warn: #f59e0b;
+      --js: #f7df1e;
+      --py: #3776ab;
+      --ts: #3178c6;
+      --node: #68a063;
+    }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .logo { display: flex; align-items: center; gap: .6rem; font-weight: 700; font-size: 1.15rem; }
+    .logo-icon { font-size: 1.4rem; }
+    .logo span { color: var(--accent); }
+    nav { display: flex; gap: .25rem; }
+    nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: .9rem;
+      padding: .45rem .9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: color .2s, background .2s;
+    }
+    nav button:hover, nav button.active {
+      color: var(--text);
+      background: var(--surface2);
+    }
+    nav button.active { color: var(--accent); }
+
+    /* ── Layout ── */
+    main { max-width: 860px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .hero {
+      text-align: center;
+      padding: 3rem 0 2.5rem;
+    }
+    .hero h1 { font-size: 2.4rem; font-weight: 800; letter-spacing: -1px; }
+    .hero h1 span { color: var(--accent); }
+    .hero p { color: var(--muted); margin-top: .6rem; font-size: 1.05rem; }
+
+    /* ── Cards de tecnologia ── */
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 2rem 0;
+    }
+    .tech-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1rem;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .2s, transform .15s;
+      user-select: none;
+    }
+    .tech-card:hover { transform: translateY(-3px); }
+    .tech-card.selected { border-color: var(--accent); background: var(--surface2); }
+    .tech-card .icon { font-size: 2rem; margin-bottom: .4rem; }
+    .tech-card .name { font-weight: 600; font-size: .95rem; }
+    .tech-card .desc { font-size: .78rem; color: var(--muted); margin-top: .25rem; }
+
+    /* ── Seletor de nível ── */
+    .level-row {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin: 1.25rem 0;
+    }
+    .level-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 20px;
+      padding: .35rem .9rem;
+      font-size: .85rem;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .level-btn:hover { border-color: var(--accent); color: var(--text); }
+    .level-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+
+    /* ── Botão principal ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: .65rem 1.4rem;
+      font-size: .95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn:active { transform: scale(.97); }
+    .btn.secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text); }
+
+    /* ── Resultado / output ── */
+    .output-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 1.5rem;
+      animation: fadeIn .3s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .output-header {
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      padding: .7rem 1.2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: .85rem;
+      color: var(--muted);
+    }
+    .output-header .dots { display: flex; gap: 5px; }
+    .output-header .dot {
+      width: 11px; height: 11px; border-radius: 50%;
+    }
+    .dot-r { background: #ff5f57; }
+    .dot-y { background: #febc2e; }
+    .dot-g { background: #28c840; }
+
+    .output-body { padding: 1.5rem; }
+
+    /* ── Trilha output ── */
+    .trail-section { margin-bottom: 1.5rem; }
+    .trail-section:last-child { margin-bottom: 0; }
+    .level-badge {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 700;
+      padding: .2rem .6rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      margin-bottom: .6rem;
+    }
+    .badge-iniciante { background: #064e3b; color: #6ee7b7; }
+    .badge-intermediario { background: #1e3a5f; color: #93c5fd; }
+    .badge-avancado { background: #4c1d95; color: #c4b5fd; }
+
+    .trail-duration { font-size: .82rem; color: var(--muted); margin-bottom: .7rem; }
+    .module-list { list-style: none; }
+    .module-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+      padding: .45rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: .9rem;
+    }
+    .module-list li:last-child { border-bottom: none; }
+    .module-num {
+      min-width: 22px;
+      height: 22px;
+      background: var(--surface2);
+      border-radius: 4px;
+      font-size: .72rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      margin-top: 1px;
+    }
+
+    /* ── Desafio output ── */
+    .challenge-title { font-size: 1.2rem; font-weight: 700; margin-bottom: .3rem; }
+    .challenge-meta { font-size: .8rem; color: var(--muted); margin-bottom: 1rem; }
+    .challenge-block {
+      background: var(--surface2);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1rem 1.1rem;
+      margin-bottom: .9rem;
+      font-size: .9rem;
+    }
+    .challenge-block h4 { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: .4rem; }
+    .challenge-block p { color: var(--text); line-height: 1.7; }
+    .hint-block { border-left-color: var(--warn); }
+    .example-block { border-left-color: var(--accent2); }
+    .example-block code {
+      font-family: "Cascadia Code", "Fira Code", monospace;
+      font-size: .88rem;
+      color: var(--accent2);
+    }
+
+    /* ── Certificado output ── */
+    .cert-wrap {
+      background: linear-gradient(135deg, #1a1d27 0%, #22263a 100%);
+      border: 2px solid var(--accent);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cert-wrap::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        45deg,
+        transparent,
+        transparent 40px,
+        rgba(108,99,255,.03) 40px,
+        rgba(108,99,255,.03) 41px
+      );
+    }
+    .cert-trophy { font-size: 3rem; margin-bottom: .5rem; }
+    .cert-title { font-size: 1rem; text-transform: uppercase; letter-spacing: .15em; color: var(--muted); margin-bottom: .3rem; }
+    .cert-org { font-size: .85rem; color: var(--accent); margin-bottom: 1.5rem; }
+    .cert-label { font-size: .85rem; color: var(--muted); margin-bottom: .3rem; }
+    .cert-name { font-size: 2rem; font-weight: 800; color: var(--text); margin-bottom: 1.2rem; }
+    .cert-tech {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      padding: .4rem 1.2rem;
+      border-radius: 20px;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .cert-meta {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      flex-wrap: wrap;
+      margin-top: 1.2rem;
+      padding-top: 1.2rem;
+      border-top: 1px solid var(--border);
+    }
+    .cert-meta-item { text-align: center; }
+    .cert-meta-item .lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+    .cert-meta-item .val { font-size: .9rem; font-weight: 600; margin-top: .15rem; color: var(--text); font-family: monospace; }
+    .cert-disclaimer { font-size: .72rem; color: var(--muted); margin-top: 1.2rem; }
+
+    /* ── Input de nome ── */
+    .input-group { display: flex; flex-direction: column; gap: .35rem; margin-bottom: 1rem; }
+    .input-group label { font-size: .85rem; color: var(--muted); }
+    .input-group input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: .6rem .9rem;
+      font-size: .95rem;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .input-group input:focus { border-color: var(--accent); }
+
+    /* ── Tabs / sections ── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ── Empty state ── */
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+    }
+    .empty .icon { font-size: 2.5rem; margin-bottom: .7rem; }
+    .empty p { font-size: .95rem; }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+    .row { display: flex; gap: .75rem; align-items: flex-end; flex-wrap: wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">🌍</span>
+    <span>Geo<span>Explorer</span></span>
+  </div>
+  <nav>
+    <button class="active" data-tab="trilha">📚 Trilha</button>
+    <button data-tab="desafio">💻 Desafio</button>
+    <button data-tab="certificado">🏆 Certificado</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ══ TRILHA ══ -->
+  <section class="section active" id="tab-trilha">
+    <div class="hero">
+      <h1>Explore sua <span>Trilha</span></h1>
+      <p>Escolha uma tecnologia e descubra o plano de estudos completo.</p>
+    </div>
+
+    <div class="tech-grid" id="trilha-techs"></div>
+
+    <div class="level-row" id="trilha-levels">
+      <button class="level-btn active" data-level="todos">Todos os níveis</button>
+      <button class="level-btn" data-level="iniciante">Iniciante</button>
+      <button class="level-btn" data-level="intermediario">Intermediário</button>
+      <button class="level-btn" data-level="avancado">Avançado</button>
+    </div>
+
+    <button class="btn" id="btn-trilha">Ver plano de estudos</button>
+
+    <div id="output-trilha"></div>
+  </section>
+
+  <!-- ══ DESAFIO ══ -->
+  <section class="section" id="tab-desafio">
+    <div class="hero">
+      <h1>Gere um <span>Desafio</span></h1>
+      <p>Receba um exercício de código conforme sua tecnologia e nível.</p>
+    </div>
+
+    <div class="tech-grid" id="desafio-techs"></div>
+
+    <div class="level-row" id="desafio-levels">
+      <button class="level-btn active" data-level="iniciante">Iniciante</button>
+      <button class="level-btn" data-level="intermediario">Intermediário</button>
+      <button class="level-btn" data-level="avancado">Avançado</button>
+    </div>
+
+    <button class="btn" id="btn-desafio">Gerar desafio</button>
+
+    <div id="output-desafio"></div>
+  </section>
+
+  <!-- ══ CERTIFICADO ══ -->
+  <section class="section" id="tab-certificado">
+    <div class="hero">
+      <h1>Gere seu <span>Certificado</span></h1>
+      <p>Celebre a conclusão da sua trilha com um certificado fictício.</p>
+    </div>
+
+    <div class="input-group">
+      <label for="cert-nome">Seu nome completo</label>
+      <input id="cert-nome" type="text" placeholder="Ex: Ana Silva" maxlength="60" />
+    </div>
+
+    <div class="tech-grid" id="cert-techs"></div>
+
+    <div class="level-row" id="cert-levels">
+      <button class="level-btn active" data-level="completa">Trilha completa</button>
+      <button class="level-btn" data-level="iniciante">Iniciante</button>
+      <button class="level-btn" data-level="intermediario">Intermediário</button>
+      <button class="level-btn" data-level="avancado">Avançado</button>
+    </div>
+
+    <button class="btn" id="btn-certificado">Gerar certificado</button>
+
+    <div id="output-cert"></div>
+  </section>
+
+</main>
+
+<script>
+// ── Dados ──────────────────────────────────────────────────────────
+const TRILHAS = [
+  {
+    id: 'javascript', tecnologia: 'JavaScript', icon: '🟨',
+    descricao: 'ES6+, assincronismo e APIs.',
+    niveis: {
+      iniciante:     { duracao: '4 semanas', modulos: ['Introdução ao JavaScript e ambiente de desenvolvimento','Variáveis, tipos de dados e operadores','Estruturas de controle: if, switch, loops','Funções e escopo','Arrays e objetos'] },
+      intermediario: { duracao: '6 semanas', modulos: ['ES6+: arrow functions, destructuring, spread/rest','Promises e async/await','Manipulação do DOM','Fetch API e requisições HTTP','Módulos ES6 e bundlers','Testes com Jest'] },
+      avancado:      { duracao: '8 semanas', modulos: ['Padrões de projeto em JavaScript','Performance e otimização','Web Workers e Service Workers','WebSockets e comunicação em tempo real','TypeScript avançado','Frameworks modernos (React/Vue/Angular)','CI/CD e deploy de aplicações web','Segurança em aplicações JavaScript'] }
+    }
+  },
+  {
+    id: 'python', tecnologia: 'Python', icon: '🐍',
+    descricao: 'Back-end, dados e automação.',
+    niveis: {
+      iniciante:     { duracao: '4 semanas', modulos: ['Introdução ao Python e ambiente virtual','Variáveis, tipos e operadores','Estruturas de controle e funções','Listas, dicionários e tuplas','Leitura e escrita de arquivos'] },
+      intermediario: { duracao: '6 semanas', modulos: ['Programação orientada a objetos','Tratamento de erros e exceções','Módulos e pacotes','Manipulação de dados com Pandas','Requisições HTTP com Requests','Testes com pytest'] },
+      avancado:      { duracao: '8 semanas', modulos: ['Desenvolvimento de APIs com FastAPI','Banco de dados com SQLAlchemy','Machine Learning com scikit-learn','Web scraping com Scrapy','Concorrência e paralelismo','Docker e containers','Deploy em cloud (AWS/GCP/Azure)','Segurança em aplicações Python'] }
+    }
+  },
+  {
+    id: 'typescript', tecnologia: 'TypeScript', icon: '🔷',
+    descricao: 'Tipagem estática e escalabilidade.',
+    niveis: {
+      iniciante:     { duracao: '3 semanas', modulos: ['Introdução ao TypeScript e configuração','Tipos básicos e inferência','Interfaces e type aliases','Funções tipadas','Classes e modificadores de acesso'] },
+      intermediario: { duracao: '5 semanas', modulos: ['Generics','Union e Intersection Types','Decorators','Módulos e namespaces','Configuração avançada do tsconfig','TypeScript com React'] },
+      avancado:      { duracao: '7 semanas', modulos: ['Tipos condicionais e mapeados','Template literal types','Utility types avançados','Monorepos com TypeScript','Performance e otimização de tipos','Integração com APIs externas tipadas','Publicação de bibliotecas TypeScript'] }
+    }
+  },
+  {
+    id: 'node', tecnologia: 'Node.js', icon: '🟩',
+    descricao: 'Back-end, APIs REST e microsserviços.',
+    niveis: {
+      iniciante:     { duracao: '4 semanas', modulos: ['Introdução ao Node.js e npm','Módulos nativos: fs, path, http','Criando um servidor HTTP simples','Express.js básico','CRUD com arquivos JSON'] },
+      intermediario: { duracao: '6 semanas', modulos: ['Middlewares no Express','Banco de dados com MongoDB','Autenticação com JWT','Validação de dados','Variáveis de ambiente e segurança','Testes de API com Supertest'] },
+      avancado:      { duracao: '8 semanas', modulos: ['Microsserviços com Node.js','Message brokers (RabbitMQ/Kafka)','GraphQL','WebSockets com Socket.io','Monitoramento e logging','Docker e Kubernetes','CI/CD pipelines','Performance e escalabilidade'] }
+    }
+  },
+  {
+    id: 'cpp', tecnologia: 'C++', icon: '⚙️',
+    descricao: 'Sistemas, performance e baixo nível.',
+    niveis: {
+      iniciante:     { duracao: '5 semanas', modulos: ['Introdução ao C++ e ambiente de compilação','Variáveis, tipos primitivos e operadores','Estruturas de controle: if, switch, loops','Funções e passagem por valor e referência','Arrays, strings e ponteiros básicos'] },
+      intermediario: { duracao: '7 semanas', modulos: ['Programação orientada a objetos: classes e objetos','Construtores, destrutores e RAII','Herança, polimorfismo e classes abstratas','Templates e programação genérica','STL: vector, map, set e algoritmos','Gerenciamento de memória e smart pointers'] },
+      avancado:      { duracao: '9 semanas', modulos: ['Move semantics e rvalue references','Metaprogramação com templates','Concorrência com std::thread e std::mutex','Otimização de performance e profiling','Padrões de projeto em C++','Interoperabilidade com C e linguagens externas','Desenvolvimento de bibliotecas reutilizáveis','Sistemas embarcados e programação de baixo nível','C++20: concepts, ranges e coroutines'] }
+    }
+  }
+];
+
+const DESAFIOS = {
+  javascript: {
+    iniciante: [
+      { titulo: 'FizzBuzz', enunciado: 'Escreva uma função que recebe um número inteiro n e retorna "Fizz" se divisível por 3, "Buzz" se por 5, "FizzBuzz" se por ambos, ou o próprio número.', dica: 'Use o operador de módulo (%) para verificar divisibilidade.', exemplo: 'fizzBuzz(15) → "FizzBuzz"' },
+      { titulo: 'Invertendo String', enunciado: 'Crie uma função que receba uma string e retorne ela invertida, sem usar .reverse().', dica: 'Use um laço for decrescente ou .split() + .reduce().', exemplo: 'inverter("hello") → "olleh"' }
+    ],
+    intermediario: [
+      { titulo: 'Debounce', enunciado: 'Implemente uma função debounce(fn, delay) que retorna uma versão com debounce da função fn. A função retornada deve chamar fn apenas após delay ms sem ser invocada novamente.', dica: 'Use setTimeout e clearTimeout.', exemplo: 'const pesquisar = debounce(buscarAPI, 300)' },
+      { titulo: 'Promise.all manual', enunciado: 'Implemente sua própria versão de Promise.all sem usar o método nativo. A função deve resolver quando todas as promises resolverem, ou rejeitar assim que qualquer uma rejeitar.', dica: 'Use um contador para saber quando todas as promises terminaram.', exemplo: 'meuPromiseAll([p1, p2, p3]).then(valores => ...)' }
+    ],
+    avancado: [
+      { titulo: 'Proxy reativo', enunciado: 'Crie um sistema de reatividade simples usando Proxy. Dado um objeto, qualquer alteração em suas propriedades deve disparar um callback de "efeito" registrado.', dica: 'Use o trap set do Proxy e mantenha um Set de efeitos.', exemplo: 'const estado = reativo({ count: 0 }); efeito(() => console.log(estado.count))' }
+    ]
+  },
+  python: {
+    iniciante: [
+      { titulo: 'Palíndromo', enunciado: 'Escreva uma função eh_palindromo(texto) que retorne True se o texto for um palíndromo e False caso contrário. Ignore maiúsculas e espaços.', dica: 'Normalize o texto com .lower().replace(" ", "") antes de comparar.', exemplo: 'eh_palindromo("A man a plan a canal Panama") → True' },
+      { titulo: 'Contador de palavras', enunciado: 'Crie uma função que receba uma string e retorne um dicionário com a frequência de cada palavra.', dica: 'Use .split() e um dict para contar. Considere usar collections.Counter.', exemplo: 'contar_palavras("a b a c a b") → {"a": 3, "b": 2, "c": 1}' }
+    ],
+    intermediario: [
+      { titulo: 'Decorador de cache', enunciado: 'Implemente um decorador @cache que memorize o resultado de uma função com base nos seus argumentos, sem usar functools.lru_cache.', dica: 'Use um dicionário mapeando args → resultado.', exemplo: '@cache\ndef fib(n): ...' }
+    ],
+    avancado: [
+      { titulo: 'Generator pipeline', enunciado: 'Construa um pipeline de processamento de dados usando generators. Crie funções geradoras encadeadas para: 1) ler linhas de um arquivo, 2) filtrar linhas, 3) transformar dados.', dica: 'Use yield from e compose os generators com for item in outro_gen().', exemplo: 'pipeline = transformar(filtrar(ler_arquivo("dados.csv")))' }
+    ]
+  },
+  typescript: {
+    iniciante: [
+      { titulo: 'Tipando uma API', enunciado: 'Crie as interfaces TypeScript para representar a resposta de uma API de usuários. Cada usuário tem: id (number), nome (string), email (string), ativo (boolean), e opcionalmente uma lista de permissões (string[]).', dica: 'Use ? para marcar propriedades opcionais.', exemplo: 'interface Usuario { id: number; nome: string; ... }' }
+    ],
+    intermediario: [
+      { titulo: 'Generic Stack', enunciado: 'Implemente uma estrutura de dados Stack (pilha) genérica em TypeScript com os métodos push, pop, peek e isEmpty, todos corretamente tipados.', dica: 'Use class Stack<T> e mantenha um array privado como armazenamento.', exemplo: 'const pilha = new Stack<number>(); pilha.push(1)' }
+    ],
+    avancado: [
+      { titulo: 'DeepReadonly', enunciado: 'Crie um tipo utilitário DeepReadonly<T> que torna todas as propriedades de um objeto imutáveis de forma recursiva, incluindo objetos aninhados.', dica: 'Use tipos condicionais e mapeados do TypeScript.', exemplo: 'type Config = DeepReadonly<{ db: { host: string } }>' }
+    ]
+  },
+  node: {
+    iniciante: [
+      { titulo: 'Servidor de arquivos estáticos', enunciado: 'Crie um servidor HTTP com o módulo nativo http do Node.js que sirva arquivos estáticos de uma pasta public/. Se o arquivo não existir, retorne 404.', dica: 'Use fs.readFile e inspecione a URL da requisição.', exemplo: 'GET /index.html → lê e serve ./public/index.html' }
+    ],
+    intermediario: [
+      { titulo: 'API REST com Express', enunciado: 'Crie uma API REST para gerenciar uma lista de tarefas usando Express. Implemente: GET /tasks, POST /tasks, PUT /tasks/:id e DELETE /tasks/:id. Persista os dados em arquivo JSON.', dica: 'Use express.json() como middleware e fs.writeFileSync para persistir.', exemplo: 'POST /tasks { "titulo": "Estudar Node" } → 201 Created' }
+    ],
+    avancado: [
+      { titulo: 'Rate Limiter middleware', enunciado: 'Implemente um middleware de rate limiting para Express sem bibliotecas externas. Limite cada IP a 100 requisições por janela de 15 minutos. Retorne 429 quando o limite for atingido.', dica: 'Use um Map para armazenar contadores por IP e Date.now() para controlar a janela.', exemplo: 'app.use(rateLimiter({ max: 100, windowMs: 15 * 60 * 1000 }))' }
+    ]
+  },
+  cpp: {
+    iniciante: [
+      { titulo: 'Calculadora de ponteiros', enunciado: 'Crie um programa que declare um array de 5 inteiros, percorra-o usando aritmética de ponteiros (sem índices) e calcule a soma dos elementos.', dica: 'Use um ponteiro int* p = arr e incremente com p++ a cada iteração.', exemplo: 'int arr[] = {1,2,3,4,5}; // soma → 15' },
+      { titulo: 'Fibonacci recursivo', enunciado: 'Implemente a função fib(n) que retorna o n-ésimo número de Fibonacci de forma recursiva. Adicione um caso base para n <= 1.', dica: 'fib(0)=0, fib(1)=1, fib(n)=fib(n-1)+fib(n-2).', exemplo: 'fib(10) → 55' }
+    ],
+    intermediario: [
+      { titulo: 'Classe Vector genérica', enunciado: 'Implemente uma classe template MyVector<T> com os métodos push_back, pop_back, operator[] e size. Gerencie a memória dinamicamente com new e delete[].', dica: 'Mantenha um ponteiro T* data, um capacity e um size. Duplique o capacity quando necessário.', exemplo: 'MyVector<int> v; v.push_back(42); v[0] → 42' },
+      { titulo: 'Smart pointer único', enunciado: 'Implemente uma versão simplificada de unique_ptr<T> com construtor, destrutor, operator*, operator-> e método release(). Proíba cópia mas permita move.', dica: 'Delete o construtor de cópia e o operador de atribuição por cópia. Implemente o construtor de move.', exemplo: 'MyUniquePtr<int> p(new int(10)); *p → 10' }
+    ],
+    avancado: [
+      { titulo: 'Thread pool', enunciado: 'Implemente um ThreadPool que aceite tarefas (std::function<void()>) via enqueue(), as execute em N threads trabalhadoras e encerre limpa ao ser destruído.', dica: 'Use std::queue, std::mutex, std::condition_variable e std::thread. No destrutor, sete um flag de parada e dê notify_all().', exemplo: 'ThreadPool pool(4); pool.enqueue([] { /* tarefa */ });' }
+    ]
+  }
+};
+
+// ── Estado ─────────────────────────────────────────────────────────
+const state = {
+  trilha:      { tech: null, level: 'todos' },
+  desafio:     { tech: null, level: 'iniciante' },
+  certificado: { tech: null, level: 'completa' }
+};
+
+// ── Helpers ────────────────────────────────────────────────────────
+function gerarCodigo(nome, tech) {
+  const base = nome + tech + Math.floor(Date.now() / 86400000);
+  let h = 0;
+  for (const c of base) h = (Math.imul(31, h) + c.charCodeAt(0)) | 0;
+  return 'GEO-' + Math.abs(h).toString(36).toUpperCase().padStart(8, '0');
+}
+
+function dataAtual() {
+  return new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// ── Renderiza cards de tecnologia ──────────────────────────────────
+function renderTechGrid(containerId, stateKey) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  TRILHAS.forEach(t => {
+    const card = document.createElement('div');
+    card.className = 'tech-card' + (state[stateKey].tech === t.id ? ' selected' : '');
+    card.innerHTML = `<div class="icon">${t.icon}</div><div class="name">${t.tecnologia}</div><div class="desc">${t.descricao}</div>`;
+    card.addEventListener('click', () => {
+      state[stateKey].tech = t.id;
+      renderTechGrid(containerId, stateKey);
+    });
+    container.appendChild(card);
+  });
+}
+
+// ── Renderiza seletores de nível ───────────────────────────────────
+function bindLevels(containerId, stateKey) {
+  document.getElementById(containerId).addEventListener('click', e => {
+    const btn = e.target.closest('.level-btn');
+    if (!btn) return;
+    state[stateKey].level = btn.dataset.level;
+    document.querySelectorAll(`#${containerId} .level-btn`).forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+}
+
+// ── TRILHA ─────────────────────────────────────────────────────────
+function renderTrilha() {
+  const { tech, level } = state.trilha;
+  const out = document.getElementById('output-trilha');
+
+  if (!tech) {
+    out.innerHTML = `<div class="output-card"><div class="output-body"><div class="empty"><div class="icon">🗺️</div><p>Selecione uma tecnologia acima.</p></div></div></div>`;
+    return;
+  }
+
+  const trilha = TRILHAS.find(t => t.id === tech);
+  const niveis = level === 'todos' ? Object.keys(trilha.niveis) : [level];
+  const badgeClass = { iniciante: 'badge-iniciante', intermediario: 'badge-intermediario', avancado: 'badge-avancado' };
+  const labelMap = { iniciante: 'Iniciante', intermediario: 'Intermediário', avancado: 'Avançado' };
+
+  const sections = niveis.map(n => {
+    const dados = trilha.niveis[n];
+    const items = dados.modulos.map((m, i) =>
+      `<li><span class="module-num">${i + 1}</span>${m}</li>`
+    ).join('');
+    return `<div class="trail-section">
+      <span class="level-badge ${badgeClass[n]}">${labelMap[n]}</span>
+      <div class="trail-duration">⏱ ${dados.duracao}</div>
+      <ul class="module-list">${items}</ul>
+    </div>`;
+  }).join('<hr class="divider">');
+
+  out.innerHTML = `
+    <div class="output-card">
+      <div class="output-header">
+        <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <span>${trilha.icon} ${trilha.tecnologia} — ${level === 'todos' ? 'Todos os níveis' : labelMap[level]}</span>
+        <span></span>
+      </div>
+      <div class="output-body">${sections}</div>
+    </div>`;
+}
+
+// ── DESAFIO ────────────────────────────────────────────────────────
+function renderDesafio() {
+  const { tech, level } = state.desafio;
+  const out = document.getElementById('output-desafio');
+
+  if (!tech) {
+    out.innerHTML = `<div class="output-card"><div class="output-body"><div class="empty"><div class="icon">💡</div><p>Selecione uma tecnologia acima.</p></div></div></div>`;
+    return;
+  }
+
+  const pool = DESAFIOS[tech]?.[level];
+  if (!pool || !pool.length) {
+    out.innerHTML = `<div class="output-card"><div class="output-body"><div class="empty"><div class="icon">🚧</div><p>Nenhum desafio cadastrado para esse nível ainda.</p></div></div></div>`;
+    return;
+  }
+
+  const d = pick(pool);
+  const trilha = TRILHAS.find(t => t.id === tech);
+  const labelMap = { iniciante: 'Iniciante', intermediario: 'Intermediário', avancado: 'Avançado' };
+
+  out.innerHTML = `
+    <div class="output-card">
+      <div class="output-header">
+        <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <span>${trilha.icon} ${trilha.tecnologia} · ${labelMap[level]}</span>
+        <span></span>
+      </div>
+      <div class="output-body">
+        <div class="challenge-title">${d.titulo}</div>
+        <div class="challenge-meta">${trilha.tecnologia} · Nível ${labelMap[level]}</div>
+        <div class="challenge-block">
+          <h4>📋 Enunciado</h4>
+          <p>${d.enunciado}</p>
+        </div>
+        <div class="challenge-block hint-block">
+          <h4>💡 Dica</h4>
+          <p>${d.dica}</p>
+        </div>
+        <div class="challenge-block example-block">
+          <h4>📌 Exemplo</h4>
+          <code>${d.exemplo}</code>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── CERTIFICADO ────────────────────────────────────────────────────
+function renderCertificado() {
+  const { tech, level } = state.certificado;
+  const nome = document.getElementById('cert-nome').value.trim();
+  const out = document.getElementById('output-cert');
+
+  if (!nome) { alert('Por favor, informe seu nome completo.'); return; }
+  if (!tech) {
+    out.innerHTML = `<div class="output-card"><div class="output-body"><div class="empty"><div class="icon">🏆</div><p>Selecione uma tecnologia acima.</p></div></div></div>`;
+    return;
+  }
+
+  const trilha = TRILHAS.find(t => t.id === tech);
+  const labelMap = { iniciante: 'Iniciante', intermediario: 'Intermediário', avancado: 'Avançado', completa: 'Completa' };
+  const nivelExibido = labelMap[level];
+  const duracao = level === 'completa'
+    ? Object.values(trilha.niveis).reduce((a, n) => a + parseInt(n.duracao), 0) + ' semanas'
+    : trilha.niveis[level].duracao;
+  const codigo = gerarCodigo(nome, tech + level);
+
+  out.innerHTML = `
+    <div class="output-card">
+      <div class="output-header">
+        <div class="dots"><span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span></div>
+        <span>Certificado gerado</span>
+        <span></span>
+      </div>
+      <div class="output-body">
+        <div class="cert-wrap">
+          <div class="cert-trophy">🏆</div>
+          <div class="cert-title">Certificado de Conclusão</div>
+          <div class="cert-org">Geo-Explorer — Trilhas de Aprendizagem</div>
+          <div class="cert-label">Certificamos que</div>
+          <div class="cert-name">${nome}</div>
+          <div class="cert-label">concluiu com êxito a trilha de</div>
+          <div class="cert-tech">${trilha.icon} ${trilha.tecnologia} — Nível ${nivelExibido}</div>
+          <div class="cert-meta">
+            <div class="cert-meta-item"><div class="lbl">Duração</div><div class="val">${duracao}</div></div>
+            <div class="cert-meta-item"><div class="lbl">Data</div><div class="val">${dataAtual()}</div></div>
+            <div class="cert-meta-item"><div class="lbl">Código</div><div class="val">${codigo}</div></div>
+          </div>
+          <div class="cert-disclaimer">⚠️ Este é um certificado fictício para fins educacionais.</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+// ── Navegação por abas ─────────────────────────────────────────────
+document.querySelectorAll('nav button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Init ───────────────────────────────────────────────────────────
+renderTechGrid('trilha-techs',  'trilha');
+renderTechGrid('desafio-techs', 'desafio');
+renderTechGrid('cert-techs',    'certificado');
+
+bindLevels('trilha-levels',  'trilha');
+bindLevels('desafio-levels', 'desafio');
+bindLevels('cert-levels',    'certificado');
+
+document.getElementById('btn-trilha').addEventListener('click', renderTrilha);
+document.getElementById('btn-desafio').addEventListener('click', renderDesafio);
+document.getElementById('btn-certificado').addEventListener('click', renderCertificado);
+</script>
+</body>
+</html>
